@@ -9,10 +9,10 @@ namespace K_means_clustering
 {
     class Vector
     {
-        private int[] location = new int[32];
+        private List<int> location = new List<int>();
         private Cluster cluster;
 
-        public int[] Location
+        public List<int> Location
         {
             get
             {
@@ -25,7 +25,7 @@ namespace K_means_clustering
             }
         }
 
-        internal Cluster Cluster
+        public Cluster Cluster
         {
             get
             {
@@ -36,10 +36,6 @@ namespace K_means_clustering
             {
                 cluster = value;
             }
-        }
-
-        public void addOffer(int offer) {
-            Location[Location.Length - 1] = offer;
         }
 
         public double getEuclideanDistance(float[] location) {

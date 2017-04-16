@@ -8,8 +8,8 @@ namespace K_means_clustering
 {
     class Program
     {
-        private static int k = 4;
-        private static int iterations = 5000;
+        private static int k = 3;
+        private static int iterations = 5;
 
         static void Main(string[] args)
         {
@@ -21,26 +21,76 @@ namespace K_means_clustering
                 vectors = assignVectorsToClosestCluster(vectors, clusters);
                 clusters = recomputeCentroids(clusters, vectors);
 
-                Console.WriteLine(counter);
                 counter++;
             }
 
+            printClusterCount(vectors, clusters);
+            printSSE(vectors, clusters);
+
+            //readLine to prevent console from closing
+            Console.ReadLine();
+        }
+
+        private static void printClusterCount(Vector[] vectors, Cluster[] clusters) {
             for (int i = 0; i < clusters.Length; i++)
             {
                 int[] clusterCount = new int[k];
 
                 for (int j = 0; j < vectors.Length; j++)
                 {
-                    if (vectors[j].Cluster == clusters[i]) {
+                    if (vectors[j].Cluster == clusters[i])
+                    {
                         clusterCount[i]++;
                     }
                 }
+
+                Console.WriteLine("\nCluster " + (i + 1) + " : " + clusterCount[i] + "\n");
+                printOfferCount(vectors, clusters);
                 
-                Console.WriteLine("Done: " + clusterCount[i]);
+            }
+        }
+
+        private static void printSSE(Vector[] vectors, Cluster[] clusters) {
+
+            float tempSum;
+            float result = 0;
+
+            for (int i = 0; i < clusters.Length; i++)
+            {
+                tempSum = 0;
+                for (int j = 0; j < vectors.Length; j++)
+                {
+                    if (vectors[j].Cluster == clusters[i])
+                    {
+                        tempSum += (float)Math.Pow(vectors[j].getEuclideanDistance(clusters[i].Centroid), 2);
+                    }
+                }
+                result += tempSum;
             }
 
-            //readLine to prevent console from closing
-            Console.ReadLine();
+            Console.WriteLine("\nSSE: " + result);
+        }
+        private static void printOfferCount(Vector[] vectors, Cluster[] clusters) {
+            for (int i = 0; i < clusters.Length; i++)
+            {
+                int[] offerCount = new int[32];
+                for (int j = 0; j < vectors.Length; j++)
+                {
+                    if (vectors[j].Cluster == clusters[i])
+                    {
+                        for (int k = 0; k < vectors[j].Location.Count; k++)
+                        {
+                            offerCount[k] += vectors[j].Location[k];
+                        }
+                    }
+                }
+
+                List<int> finalList = new List<int>(offerCount).OrderByDescending(r => r).ToList(); ;
+                for (int j = 0; j < offerCount.Length; j++)
+                {
+                    Console.WriteLine("Offer " + j + " : " + finalList[j]); 
+                }
+            }
         }
 
         private static Vector[] assignVectorsToClosestCluster(Vector[] vectors, Cluster[] clusters) {
@@ -70,8 +120,8 @@ namespace K_means_clustering
                 {
                     if (vectors[j].Cluster == clusters[i])
                     {
-                        int[] location = vectors[j].Location;
-                        for (int h = 0; h < location.Length; h++)
+                        List<int> location = vectors[j].Location;
+                        for (int h = 0; h < location.Count; h++)
                         {
                             mean[h] += location[h];
                         }
@@ -109,9 +159,10 @@ namespace K_means_clustering
                 Vector vector = new Vector();
                 for (int j = 0; j < offers.GetLength(1); j++)
                 {
-                    vector.addOffer(offers[i, j]);
+                    vector.Location.Add(offers[i, j]);
                 }
                 vectors[i] = vector;
+
 
             }
             return vectors;
@@ -119,9 +170,19 @@ namespace K_means_clustering
 
         private static Cluster[] initiateClusters(Vector[] vectors) {
             Cluster[] clusters = new Cluster[k];
+
+            
+            Random r = new Random();
+            List<int> randomIndices = new List<int>();
             for (int i = 0; i < k; i++)
             {
-                float[] location = Array.ConvertAll(vectors[i].Location, n => (float) n );
+                int randomIndex = r.Next(0, 100);
+                while (randomIndices.Contains(randomIndex)) {
+                    randomIndex = r.Next(0, 100);
+                }
+                randomIndices.Add(randomIndex);
+
+                float[] location = vectors[randomIndex].Location.Select<int, float>(x => x).ToArray();
                 Cluster cluster = new Cluster(location);
                 clusters[i] = cluster;
             }
